@@ -23,32 +23,11 @@ INSERT IGNORE INTO role(id, name)
 VALUES (1, 'ADMIN'),
        (2, 'USER');
 
-INSERT IGNORE INTO user(id, name, email, password, home_country, image_path, is_enabled, is_mfa_enabled, secret,
-                        registered_at)
-VALUES (1, 'Theodore Meras', 'chintanjethi@yahoo.gr', '$2a$10$uu9TwmhE0hMAPAmTNFsPjes8lUuw1RCC5iZPuPlk7aU.xWAYmJyDy',
-        'Greece', './uploads/flyway-user-images/user_image.png', true, false, null, CURDATE()),
-       (2, 'Edmund Smith', 'admin@yahoo.gr', '$2a$10$uu9TwmhE0hMAPAmTNFsPjes8lUuw1RCC5iZPuPlk7aU.xWAYmJyDy',
-        'United Kingdom', './uploads/flyway-user-images/admin_image.png', true, false, null, CURDATE()),
-       (3, 'Mary Cole', 'mary@gmail.com', '$2a$10$uu9TwmhE0hMAPAmTNFsPjes8lUuw1RCC5iZPuPlk7aU.xWAYmJyDy',
-        'United Kingdom', './uploads/flyway-user-images/user_image_2.png', true, false, null, CURDATE()),
-        (4, 'John Doe', 'john@gmail.com', '$2a$10$uu9TwmhE0hMAPAmTNFsPjes8lUuw1RCC5iZPuPlk7aU.xWAYmJyDy',
-        'United Kingdom', null, true, false, null, CURDATE());
-
 INSERT IGNORE INTO user_role(user_id, role_id)
 VALUES (1, 2),
        (2, 1),
        (3, 2),
        (4, 1);
-
-INSERT IGNORE INTO address(id, country, street, state, city, postal_code, is_main, address_type, user_id, name, phone_number)
-VALUES (1, 'Greece', 'Ermou Street', 'Attica', 'Athens', '10563',
-        true, 'HOME', 1, 'Theodore Meras', '+302101234567'),
-       (2, 'United Kingdom', 'Mappin Street', 'South Yorkshire', 'Sheffield', 'S1 4DT',
-        true, 'WORK', 2, 'Edmund Smith', '+441234567890'),
-       (3, 'United Kingdom', 'Oxford Road', 'Greater Manchester', 'Manchester', 'M13 9PL',
-        true, 'HOME', 3, 'Mary Cole', '+441612345678'),
-        (4, 'United Kingdom', '221B Baker Street', 'Greater London', 'London', 'NW1 6XE',
-        true, 'HOME', 4, 'John Doe', '+447911123456');
 
 INSERT IGNORE INTO product(id, name, description, price, previous_price, product_condition,
                            available_quantity, is_deleted, category_id, seller_id, listed_at)
@@ -303,18 +282,10 @@ INSERT IGNORE INTO order_item(id, product_id, product_quantity, order_id, status
 VALUES (1, 8, 2, 1, 'SHIPPED', 'Nike T-shirt', 25, 'NEW', './uploads/flyway-order-item-images/nike_shirt_1.png', 2),
        (2, 9, 3, 1, 'DELIVERED', 'Levi\'s Jeans', 60, 'FAIR', './uploads/flyway-order-item-images/levis_jeans_1.png', 2);
 
-INSERT IGNORE INTO customer_order(id, placed_at, payment_method, billing_address,
-                                 delivery_address, buyer_id, status, stripe_checkout_id)
-VALUES (2, UTC_TIMESTAMP(), 'card', "Theodore Meras, Ermou Street, Attica, Athens, 10563, Greece, +302101234567",
-        "Theodore Meras, Ermou Street, Attica, Athens, 10563, Greece, +302101234567", 1, "PAID", NULL);
 INSERT IGNORE INTO order_item(id, product_id, product_quantity, order_id, status, product_name, product_price,
                              product_condition, product_image_path, product_seller_id)
 VALUES (3, 11, 1, 2, 'PENDING_SHIPMENT', 'Canon EOS 5D Mark IV', 1000, 'LIKE_NEW', './uploads/flyway-order-item-images/canon_1.png', 2);
 
-INSERT IGNORE INTO customer_order(id, placed_at, payment_method, billing_address,
-                                 delivery_address, buyer_id, status, stripe_checkout_id)
-VALUES (3, UTC_TIMESTAMP(), 'card', "Theodore Meras, Ermou Street, Attica, Athens, 10563, Greece, +302101234567",
-        "Theodore Meras, Ermou Street, Attica, Athens, 10563, Greece, +302101234567", 1, "PAID", NULL);
 INSERT IGNORE INTO order_item(id, product_id, product_quantity, order_id, status, product_name, product_price,
                              product_condition, product_image_path, product_seller_id)
 VALUES (4, 12, 1, 3, 'DELIVERED', 'Nintendo Switch OLED', 35, 'NEW', './uploads/flyway-order-item-images/switch_1.png', 2),
