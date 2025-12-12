@@ -1,0 +1,263 @@
+package com.chintanjethi.topmart.security;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.chintanjethi.topmart.email.EmailService;
+import com.chintanjethi.topmart.exception.APIException;
+import com.chintanjethi.topmart.exception.ResourceAlreadyExistsException;
+import com.chintanjethi.topmart.exception.ResourceNotFoundException;
+import com.chintanjethi.topmart.role.Role;
+import com.chintanjethi.topmart.role.RoleRepository;
+import com.chintanjethi.topmart.token.JwtService;
+import com.chintanjethi.topmart.token.Token;
+import com.chintanjethi.topmart.token.TokenRepository;
+import com.chintanjethi.topmart.token.TokenType;
+import com.chintanjethi.topmart.user.User;
+import com.chintanjethi.topmart.user.UserRepository;
+import io.jsonwebtoken.JwtException;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.security.SecureRandom;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+@Service
+@RequiredArgsConstructor
+public class AuthenticationService {
+
+    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final MfaService mfaService;
+
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
+
+    @Value("${application.frontend.base-url}")
+    private String frontendBaseUrl;
+
+    @Value("${application.mailing.activation-url}")
+    private String activationUrl;
+
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long refreshExpirationTime;
+
+    @Transactional(rollbackFor = MessagingException.class)
+    public AuthenticationResponse register(RegistrationRequest registrationRequest) throws MessagingException {
+        Role userRole = roleRepository.findByName("USER")
+                .orElseThrow(() -> new ResourceNotFoundException("USER role was not found"));
+        if (userRepository.existsByEmail(registrationRequest.getEmail()))
+            throw new ResourceAlreadyExistsException(
+                    "A user with the email '" + registrationRequest.getEmail() + "' already exists"
+            );
+
+        User user = User.builder()
+                .name(registrationRequest.getName())
+                .email(registrationRequest.getEmail())
+                .password(passwordEncoder.encode(registrationRequest.getPassword()))
+                .roles(Set.of(userRole))
+                .homeCountry(registrationRequest.getHomeCountry())
+                .registeredAt(LocalDate.now())
+                .isEnabled(false)
+                .isMfaEnabled(registrationRequest.getIsMfaEnabled())
+                .build();
+
+        // Generate secret and QR code image if MFA is enabled
+        String qrImageUri = null;
+        if (registrationRequest.getIsMfaEnabled()) {
+            user.setSecret(mfaService.generateSecret());
+            qrImageUri = mfaService.generateQrCodeImageUri(user.getSecret(), user.getEmail());
+        }
+
+        userRepository.save(user);
+        sendActivationEmail(user);
+
+        return AuthenticationResponse.builder()
+                .qrImageUri(qrImageUri)
+                .isMfaEnabled(registrationRequest.getIsMfaEnabled())
+                .build();
+    }
+
+    private void sendActivationEmail(User user) throws MessagingException {
+        String activationCode = generateAndSaveActivationCode(user);
+
+        emailService.sendActivationEmail(
+                user.getEmail(),
+                user.getRealName(),
+                frontendBaseUrl + activationUrl + activationCode,
+                activationCode
+        );
+    }
+
+    private String generateAndSaveActivationCode(User user) {
+        String generatedCode = generateActivationCode(6);
+        tokenRepository.save(Token.builder()
+                .token(generatedCode)
+                .tokenType(TokenType.ACTIVATION)
+                .createdAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .isRevoked(false)
+                .user(user)
+                .build()
+        );
+
+        return generatedCode;
+    }
+
+    private String generateActivationCode(int length) {
+        String characters = "0123456789";
+        StringBuilder codeBuilder = new StringBuilder();
+        SecureRandom secureRandom = new SecureRandom();
+        for (int i = 0; i < length; i++) {
+            int randomIndex = secureRandom.nextInt(characters.length());
+            codeBuilder.append(characters.charAt(randomIndex));
+        }
+
+        return codeBuilder.toString();
+    }
+
+    public AuthenticationResponse login(AuthenticationRequest authenticationRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        authenticationRequest.getEmail(),
+                        authenticationRequest.getPassword()
+                )
+        );
+        User user = (User) authentication.getPrincipal();
+
+        // Client needs to send OTP
+        if (user.getIsMfaEnabled())
+            return AuthenticationResponse.builder()
+                    .isMfaEnabled(true)
+                    .build();
+
+        return generateTokens(user);
+    }
+
+    @Transactional(
+            rollbackFor = MessagingException.class,
+            noRollbackFor = APIException.class
+    )
+    public void activateAccount(String code) throws MessagingException {
+        Token savedToken = tokenRepository.findByToken(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Activation token not found"));
+
+        //  Return if token has already been validated
+        if (savedToken.getValidatedAt() != null)
+            return;
+
+        if (LocalDateTime.now().isAfter(savedToken.getExpiresAt())) {
+            sendActivationEmail(savedToken.getUser());
+            throw new APIException("Activation code has expired. A new email has been sent");
+        }
+
+        User user = savedToken.getUser();
+        user.setIsEnabled(true);
+        userRepository.save(user);
+
+        savedToken.setValidatedAt(LocalDateTime.now());
+        tokenRepository.save(savedToken);
+    }
+
+    public void refreshToken(String refreshToken, HttpServletResponse response) throws IOException {
+        if (refreshToken.isEmpty())
+            throw new JwtException("No refresh token was provided");
+
+        String userEmail = jwtService.extractUsername(refreshToken);
+        if (userEmail != null) {
+            User user = userRepository.findWithAssociationsByEmail(userEmail)
+                    .orElseThrow(() -> new UsernameNotFoundException("User with the email '" + userEmail + "' does not exist"));
+
+            boolean isTokenRevoked = tokenRepository.findByToken(refreshToken)
+                    .map(Token::getIsRevoked)
+                    .orElseThrow(() -> new ResourceNotFoundException("Refresh token was not found"));
+
+            if (!isTokenRevoked && jwtService.isTokenValid(refreshToken, user)) {
+                Map<String, Object> claims = new HashMap<>();
+                claims.put("name", user.getRealName());
+                String newAccessToken = jwtService.generateAccessToken(claims, user);
+
+                AuthenticationResponse authenticationResponse =
+                        AuthenticationResponse.builder()
+                                .accessToken(newAccessToken)
+                                .build();
+
+                response.setContentType("application/json");
+                new ObjectMapper().writeValue(response.getOutputStream(), authenticationResponse);
+                return;
+            }
+        }
+        throw new JwtException("Invalid refresh token");
+    }
+
+    public AuthenticationResponse verifyOtp(VerificationRequest verificationRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        verificationRequest.getEmail(),
+                        verificationRequest.getPassword()
+                )
+        );
+        User user = (User) authentication.getPrincipal();
+
+        if (!mfaService.isOtpValid(user.getSecret(), verificationRequest.getOtp()))
+            throw new BadCredentialsException("OTP is not valid");
+
+        return generateTokens(user);
+    }
+
+    private AuthenticationResponse generateTokens(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("name", user.getRealName());
+        String accessToken = jwtService.generateAccessToken(claims, user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        tokenRepository.save(Token.builder()
+                .token(refreshToken)
+                .tokenType(TokenType.BEARER)
+                .createdAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plus(refreshExpirationTime, ChronoUnit.MILLIS))
+                .isRevoked(false)
+                .user(user)
+                .build()
+        );
+
+        boolean inProduction = "prod".equals(activeProfile);
+
+        // Include refresh token in HttpOnly cookie
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie
+                .from("refresh-token", refreshToken)
+                .httpOnly(true)
+                .secure(inProduction)
+                .path("/")
+                .maxAge(refreshExpirationTime / 1000);
+        if (inProduction) {
+            cookieBuilder.sameSite("None")
+                    .domain(".topmart.chintanjethi.com");
+        }
+
+        return AuthenticationResponse.builder()
+                .accessToken(accessToken)
+                .refreshTokenCookie(cookieBuilder.build().toString())
+                .isMfaEnabled(user.getIsMfaEnabled())
+                .build();
+    }
+}

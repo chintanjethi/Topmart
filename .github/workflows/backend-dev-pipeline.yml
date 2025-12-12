@@ -1,0 +1,30 @@
+name: TopMart Dev Backend Pipeline
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - backend/**
+      - .github/workflows/backend-dev-pipeline.yml
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    name: Run unit tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Run unit tests
+        env:
+          STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY}}
+        run: |
+          cd backend
+          ./mvnw clean test

@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: TopMart
+
+  profiles:
+    active: dev
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 25MB
+
+  jpa:
+    open-in-view: false

@@ -1,0 +1,120 @@
+name: TopMart Main Backend Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - devops_pipeline
+    paths:
+      - backend/**
+      - .github/workflows/backend-main-pipeline.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - backend/**
+      - .github/workflows/backend-main-pipeline.yml
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run unit and integration tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run mock SMTP server
+        run: |
+          docker compose -f backend/docker-compose.yml up -d mail-dev
+          docker ps
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Run unit and integration tests
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          
+        run: |
+          cd backend
+          ./mvnw clean verify
+
+  build-image:
+    runs-on: ubuntu-latest
+    name: Build Docker image
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+      
+      - name: Build project
+        run: |
+          cd backend
+          ./mvnw clean package -DskipTests
+      
+      - name: Extract project version
+        id: extract_version
+        run: |
+          cd backend
+          echo "VERSION=$(./mvnw -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_OUTPUT
+      
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: chintanjethi
+          password: ${{ secrets.DOCKERHUB_API_KEY }}
+
+      - name: Build image and push to DockerHub
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: chintanjethi/topmart-api:${{ steps.extract_version.outputs.VERSION }},chintanjethi/topmart-api:latest
+          build-args: |
+            APP_VERSION=${{ steps.extract_version.outputs.VERSION }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to EC2 instance
+    needs: [build-image, test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > ec2_key.pem
+          chmod 400 ec2_key.pem
+
+      - name: Create deployment folder
+        run: ssh -o StrictHostKeyChecking=no -i ec2_key.pem ec2-user@${{ secrets.EC2_IP }} "mkdir -p ci-cd"
+
+      - name: Copy docker compose file
+        run: scp -o StrictHostKeyChecking=no -i ec2_key.pem backend/docker-compose.yml ec2-user@${{ secrets.EC2_IP }}:ci-cd/docker-compose.yml
+      
+      - name: Set environment variables and deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem ec2-user@${{ secrets.EC2_IP }} << EOF
+            cd ci-cd
+            cat > .env << EOL
+          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          VITE_API_URL=${{ secrets.VITE_API_URL }}
+          EOL
+            sudo docker-compose -f docker-compose.yml pull -q
+            sudo docker-compose -f docker-compose.yml up -d topmart-api mysql-topmart
+          EOF

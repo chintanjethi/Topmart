@@ -1,0 +1,59 @@
+services:
+  mysql-topmart:
+    container_name: mysql-topmart
+    image: mysql:9.2.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: topmart_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - topmart_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysql", "-u", "root", "-proot", "--execute", "SHOW DATABASES;" ]
+      interval: 3s
+      retries: 5
+      timeout: 5s
+
+  mail-dev:
+    container_name: mail_dev_topmart
+    image: maildev/maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+
+  topmart-api:
+    container_name: topmart_api
+    image: chintanjethi/topmart-api:latest
+    environment:
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - VITE_API_URL=${VITE_API_URL}
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - topmart_network
+    depends_on:
+      mysql-topmart:
+        condition: service_healthy
+
+volumes:
+  db_data:
+    driver: local
+  uploads:
+    driver: local
+
+networks:
+  topmart_network:
+    driver: bridge
+
