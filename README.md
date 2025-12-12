@@ -81,7 +81,7 @@ Automated workflows using GitHub Actions:
 
 ## Database Schema
 
-![Database ERD](./docs/database-erd.png)
+![Database ERD](./docs/db_schema.png)
 
 ## Local Development Setup
 
