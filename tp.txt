@@ -1,0 +1,207 @@
+Here's a strategic approach for presenting TopMart during your screen-sharing interview:
+
+Screen Setup Before the Interview
+Prepare these windows in advance:
+
+Browser Window 1 - Frontend (http://localhost:5173)
+
+Have the home page loaded
+Maybe already logged in with a test account
+Browser Window 2 - API/Backend testing (Postman or another tab)
+
+Have the Stripe session ID ready in a text file/note
+Keep the fulfillment curl command ready to copy
+VS Code - Split into 2-3 panes:
+
+Left: Key backend files (SecurityConfiguration.java, OrderController.java, OrderService.java)
+Right: Frontend files (API client, cart components)
+Terminal at bottom showing backend logs
+Terminal Window - Separate from VS Code
+
+Have backend running and visible
+Monitor for logs during demo
+Architecture Diagram (Optional but impressive)
+
+Draw.io, Excalidraw, or even a photo of hand-drawn diagram
+Shows: React → Spring Boot → MySQL → Stripe
+Presentation Flow (15-20 minutes)
+Opening (2 min) - Set the Context
+"I'm going to show you TopMart, a full-stack e-commerce platform I built. It's a complete production-ready application with payment processing, authentication, and order management. Let me start by quickly showing you the architecture..."
+
+Show:
+
+Architecture diagram (if you have one)
+Mention: React + TypeScript frontend, Spring Boot backend, MySQL database, Stripe integration
+Tech stack highlights: JWT auth, Docker, Spring Security, JPA/Hibernate
+Part 1: Live Application Demo (8-10 min)
+A. User Flow (4-5 min)
+"Let me walk through the customer experience..."
+
+Screen: Browser with app
+
+Show home page - "Products loaded from REST API with pagination"
+Quick search/filter - "Full-text search across product catalog"
+Click product - "Each product has detailed specs, reviews, seller info"
+Add to cart - "Cart state managed in database, not just localStorage"
+View cart - "Real-time total calculations"
+B. Authentication & Security (1-2 min)
+"Let me show you the security layer..."
+
+Open DevTools → Application → Local Storage
+Show the JWT token stored
+Open DevTools → Network tab
+Add another item to cart
+Show the request with Authorization: Bearer header
+"Every authenticated request includes the JWT token, which Spring Security validates"
+C. Payment Integration (3-4 min) - THIS IS THE KEY PART
+"Now for the payment flow - this is where I used AI to solve an interesting challenge..."
+
+Click checkout
+Click "Pay with Stripe"
+While redirecting to Stripe: "The backend creates a Stripe Checkout Session via their API. This is a PCI-compliant hosted payment page."
+Enter test card: 4242 4242 4242 4242
+Complete payment
+After redirect back: "Here's where it gets interesting. In production, Stripe would call our webhook to fulfill the order. But locally, we don't have a public URL for webhooks..."
+Switch to VS Code terminal:
+
+Show the fulfillment command:
+While running it: "This is a workaround I implemented with AI assistance. We created a manual fulfillment endpoint that simulates what the webhook would do."
+
+Show backend logs confirming fulfillment
+
+Refresh "My Purchases" - order appears!
+
+Part 2: Code Walkthrough (6-8 min)
+A. Backend Architecture (3-4 min)
+"Let me show you how this is structured..."
+
+Show in VS Code:
+
+OrderController.java (30 seconds)
+
+Point to @PostMapping("/api/orders") - creates order and Stripe session
+Point to @PostMapping("/api/orders/fulfill") - manual fulfillment endpoint
+"Clean separation of concerns - controller handles HTTP, service handles business logic"
+OrderService.java (1-2 min)
+
+Show the save() method with Stripe session creation
+Show fulfillOrder() method:
+"Wrapped in @Transactional to ensure atomicity"
+SecurityConfiguration.java (1 min)
+
+Show the permitAll() section:
+"This allows unauthenticated access to the fulfillment endpoint"
+JwtFilter.java (1 min)
+
+Show the bypass logic:
+"The filter runs before Spring Security's authorization, so we needed to add it here too"
+B. Frontend Architecture (2-3 min)
+"On the frontend side..."
+
+Show in VS Code:
+
+API Client setup (30 seconds)
+
+Show axios instance with interceptor adding JWT header
+"Automatic token injection on every request"
+Cart API integration (1 min)
+
+Show TanStack Query hook
+"Server state management with caching and automatic refetching"
+Type safety (30 seconds)
+
+Show TypeScript interfaces
+"Full type safety from API to UI"
+C. Database & DevOps (1 min)
+"Quick look at the infrastructure..."
+
+Show terminal with docker ps
+
+MySQL container
+MailDev container
+Mention Flyway (don't open unless asked)
+
+"Database migrations ensure everyone has the same schema"
+Part 3: AI Assistance Story (2-3 min)
+This is crucial for the interview requirement!
+
+"You asked about using AI for development. Here's specifically where it helped:"
+
+The webhook problem:
+
+"After implementing Stripe, orders weren't completing locally. I was getting 200 responses from Stripe but orders stayed pending."
+"I asked AI why orders weren't auto-fulfilling. It explained that Stripe webhooks need a publicly accessible URL, which localhost isn't."
+The solution:
+
+"AI suggested two options: use Stripe CLI for webhook forwarding, or create a manual fulfillment endpoint for local testing."
+"We went with the manual endpoint for simplicity."
+The security issue:
+
+"When I tried calling the endpoint, I got 401 Unauthorized. Showed AI the error."
+"It identified that the JwtFilter was rejecting requests before Spring Security's permitAll() could apply."
+"AI showed me I needed to add the endpoint to both the SecurityConfiguration AND the JwtFilter's bypass list."
+Validation:
+
+"I didn't just blindly trust the solution - I tested it, verified the HTTP 204 response, checked backend logs, and confirmed the order showed up in the UI."
+Closing (1-2 min)
+"To wrap up, this project demonstrates:"
+
+Full-stack development (React + Spring Boot)
+Payment integration (Stripe API)
+Security (JWT, Spring Security, BCrypt)
+Database design (JPA, Flyway migrations)
+Modern dev practices (Docker, TypeScript, REST APIs)
+Problem-solving with AI assistance
+"Questions?"
+
+Pro Tips for Screen Sharing
+Before Starting
+✅ Close unnecessary apps (Slack, email, notifications)
+✅ Increase font size in VS Code (Cmd/Ctrl + +)
+✅ Set terminal font size to 16-18pt
+✅ Use light theme (better for screen sharing)
+✅ Test your mic/camera beforehand
+✅ Have fallback: If something breaks, have screenshots ready
+
+During Presentation
+✅ Talk while you navigate - Don't go silent
+✅ Move slowly - Give them time to read code
+✅ Use cursor to point - Highlight what you're discussing
+✅ Keep energy up - Show enthusiasm for your work
+✅ Watch time - Don't go over, leave time for Q&A
+
+What NOT to Do
+❌ Don't fumble with terminal commands - have them ready to paste
+❌ Don't show your credentials/API keys (your DEMO_GUIDE has them visible - be careful!)
+❌ Don't apologize for code - be confident
+❌ Don't go too deep into one area - cover breadth first
+❌ Don't say "this is probably bad code" or similar self-deprecation
+
+If Something Breaks
+Backend crashes: "Let me restart it, happens sometimes after sleep. While it's starting, let me show you the code..."
+Frontend error: "No problem, let me show you in the backend logs what should happen..."
+Stripe timeout: "I have the fulfillment command ready - let me demonstrate the manual flow..."
+Handling Questions
+"Why not use Stripe CLI for webhooks locally?"
+"Great question. Stripe CLI is definitely production-ready, but for rapid local testing, a simple REST endpoint was faster to implement and easier to debug. In a team environment, we'd probably use Stripe CLI or a webhook testing tool."
+
+"How do you handle webhook security in production?"
+"In production, the /api/orders/fulfill endpoint would be removed or properly secured. The webhook endpoint verifies the Stripe signature using the webhook secret. That's the request.getServletPath().matches("/api/orders/stripe-webhook") you saw in the security config."
+
+"What about scalability?"
+"Current architecture can handle moderate traffic. For scale, I'd add: Redis for caching, message queue for async order processing, CDN for product images, and horizontal scaling of the Spring Boot instances behind a load balancer."
+
+Final Checklist
+Before interview:
+
+ All services running (Docker, backend, frontend)
+ Test account created and logged in
+ Cart has 1-2 items ready
+ Fulfillment command in clipboard
+ VS Code files open and organized
+ Font sizes increased
+ Terminal history cleared (for clean demo)
+ Browser DevTools ready but not distracting
+ DEMO_GUIDE.md open as reference (but not visible during screen share)
+You've got this! The fact that you can run the entire stack locally and explain the AI-assisted problem-solving shows real engineering maturity. Good luck! 🚀
+

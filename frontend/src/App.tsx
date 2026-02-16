@@ -3,6 +3,8 @@ import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/carousel/styles.css';
 import 'mantine-react-table/styles.css';
+import './styles/animations.css';
+import './styles/backgrounds.css';
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +19,12 @@ const queryClient = new QueryClient();
 
 const theme = createTheme({
     primaryColor: "paleIndigo",
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    headings: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        fontWeight: "700"
+    },
+    defaultRadius: "md",
     colors: {
         paleIndigo: [
             "#eff2ff",
@@ -30,6 +38,49 @@ const theme = createTheme({
             "#424e88",
             "#36437a"
         ]
+    },
+    components: {
+        Button: {
+            defaultProps: {
+                radius: "md"
+            },
+            styles: {
+                root: {
+                    fontWeight: 600,
+                    transition: "all 0.2s ease"
+                }
+            }
+        },
+        Card: {
+            defaultProps: {
+                radius: "md"
+            },
+            styles: {
+                root: {
+                    transition: "transform 0.25s ease, box-shadow 0.25s ease"
+                }
+            }
+        },
+        Paper: {
+            defaultProps: {
+                radius: "md"
+            }
+        },
+        ActionIcon: {
+            styles: {
+                root: {
+                    transition: "all 0.2s ease"
+                }
+            }
+        },
+        NavLink: {
+            styles: {
+                root: {
+                    borderRadius: "var(--mantine-radius-md)",
+                    transition: "all 0.15s ease"
+                }
+            }
+        }
     }
 });
 
@@ -37,7 +88,7 @@ function App() {
   return (
       <ErrorBoundary FallbackComponent={ MainErrorBoundary }>
           <MantineProvider theme={ theme } defaultColorScheme="light">
-              <Notifications/>
+              <Notifications position="top-right" />
               <QueryClientProvider client={ queryClient }>
                   <AuthProvider>
                       <AppRouter/>

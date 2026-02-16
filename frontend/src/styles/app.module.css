@@ -1,0 +1,318 @@
+/* ===== Shared page header styles ===== */
+
+.pageHeader {
+  padding: 24px 0 20px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.pageTitle {
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.pageSubtitle {
+  max-width: 500px;
+}
+
+/* ===== Page hero banners ===== */
+
+.pageBanner {
+  border-radius: var(--mantine-radius-lg);
+  padding: 32px 28px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bannerProducts {
+  background: linear-gradient(135deg,
+    var(--mantine-color-paleIndigo-0) 0%,
+    var(--mantine-color-blue-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerProducts {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-paleIndigo-9) 50%,
+    var(--mantine-color-dark-7) 100%
+  );
+}
+
+.bannerCart {
+  background: linear-gradient(135deg,
+    var(--mantine-color-teal-0) 0%,
+    var(--mantine-color-blue-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerCart {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-dark-6) 100%
+  );
+}
+
+.bannerWishlist {
+  background: linear-gradient(135deg,
+    var(--mantine-color-red-0) 0%,
+    var(--mantine-color-pink-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerWishlist {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-dark-6) 100%
+  );
+}
+
+.bannerAdmin {
+  background: linear-gradient(135deg,
+    var(--mantine-color-paleIndigo-0) 0%,
+    var(--mantine-color-violet-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerAdmin {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-dark-6) 100%
+  );
+}
+
+.bannerSeller {
+  background: linear-gradient(135deg,
+    var(--mantine-color-blue-0) 0%,
+    var(--mantine-color-cyan-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerSeller {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-dark-6) 100%
+  );
+}
+
+.bannerOrders {
+  background: linear-gradient(135deg,
+    var(--mantine-color-green-0) 0%,
+    var(--mantine-color-teal-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerOrders {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-dark-6) 100%
+  );
+}
+
+/* ===== Decoration dots for banners ===== */
+
+.bannerDot {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.bannerDot1 {
+  width: 180px;
+  height: 180px;
+  background: var(--mantine-color-paleIndigo-4);
+  top: -50px;
+  right: -30px;
+}
+
+.bannerDot2 {
+  width: 100px;
+  height: 100px;
+  background: var(--mantine-color-blue-4);
+  bottom: -30px;
+  left: 10%;
+}
+
+/* ===== Product card styles ===== */
+
+.productCard {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.productCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+[data-mantine-color-scheme="dark"] .productCard:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.productImageWrap {
+  overflow: hidden;
+  position: relative;
+}
+
+.productImageWrap img {
+  transition: transform 0.4s ease;
+}
+
+.productCard:hover .productImageWrap img {
+  transform: scale(1.05);
+}
+
+/* ===== Stats card ===== */
+
+.statsCard {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.statsCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-mantine-color-scheme="dark"] .statsCard:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Admin quick action cards ===== */
+
+.quickActionCard {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+}
+
+.quickActionCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+[data-mantine-color-scheme="dark"] .quickActionCard:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Search bar enhancement ===== */
+
+.searchWrapper {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  border-radius: var(--mantine-radius-lg);
+}
+
+.searchWrapper:focus-within {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+[data-mantine-color-scheme="dark"] .searchWrapper:focus-within {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Seller product card ===== */
+
+.sellerProductCard {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sellerProductCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+[data-mantine-color-scheme="dark"] .sellerProductCard:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Empty state ===== */
+
+.emptyState {
+  padding: 60px 20px;
+  text-align: center;
+  border-radius: var(--mantine-radius-lg);
+  border: 2px dashed var(--mantine-color-default-border);
+}
+
+/* ===== Banner variants: user, checkout, form ===== */
+
+.bannerUser {
+  background: linear-gradient(135deg,
+    var(--mantine-color-cyan-0) 0%,
+    var(--mantine-color-blue-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerUser {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-dark-6) 100%
+  );
+}
+
+.bannerCheckout {
+  background: linear-gradient(135deg,
+    var(--mantine-color-green-0) 0%,
+    var(--mantine-color-lime-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerCheckout {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-dark-6) 100%
+  );
+}
+
+.bannerForm {
+  background: linear-gradient(135deg,
+    var(--mantine-color-indigo-0) 0%,
+    var(--mantine-color-cyan-0) 100%
+  );
+}
+
+[data-mantine-color-scheme="dark"] .bannerForm {
+  background: linear-gradient(135deg,
+    var(--mantine-color-dark-7) 0%,
+    var(--mantine-color-dark-6) 100%
+  );
+}
+
+/* ===== Page section divider ===== */
+
+.sectionDivider {
+  border: none;
+  border-top: 1px solid var(--mantine-color-default-border);
+  margin: 28px 0;
+}
+
+/* ===== Form card wrapper ===== */
+
+.formCard {
+  border-radius: var(--mantine-radius-lg);
+  transition: box-shadow 0.3s ease;
+}
+
+.formCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-mantine-color-scheme="dark"] .formCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Address card ===== */
+
+.addressCard {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.addressCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-mantine-color-scheme="dark"] .addressCard:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}

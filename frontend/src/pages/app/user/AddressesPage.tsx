@@ -2,7 +2,9 @@ import { useGetAddressesByUser } from "@/api/addresses/getAddressesByUser.ts";
 import { CreateAddressActionIcon } from "@/components/ui/CreateAddressActionIcon.tsx";
 import { AddressesList } from "@/features/app/addresses/components/AddressesList.tsx";
 import { useAuth } from "@/hooks/useAuth.ts";
-import { Flex, Loader, Text, Title } from "@mantine/core";
+import appClasses from "@/styles/app.module.css";
+import { Box, Flex, Loader, Text, Title } from "@mantine/core";
+import { IconMapPin } from "@tabler/icons-react";
 
 export function AddressesPage() {
     const { user } = useAuth();
@@ -11,7 +13,7 @@ export function AddressesPage() {
 
     if (getAddressesByUserQuery.isPending) {
         return (
-            <Flex align="center" justify="center" h="100vh">
+            <Flex align="center" justify="center" h="60vh">
                 <Loader type="bars" size="md"/>
             </Flex>
         );
@@ -20,9 +22,11 @@ export function AddressesPage() {
     if (getAddressesByUserQuery.isError) {
         console.log("Error fetching user addresses", getAddressesByUserQuery.error);
         return (
-            <Text c="red.5">
-                There was an error when fetching your addresses. Please refresh and try again.
-            </Text>
+            <Box className={ appClasses.emptyState }>
+                <Text c="red.5" fw={500}>
+                    There was an error when fetching your addresses. Please refresh and try again.
+                </Text>
+            </Box>
         );
     }
 
@@ -32,13 +36,21 @@ export function AddressesPage() {
         <>
             <title>{ `My Addresses | TopMart` }</title>
 
-            <Flex align="center" justify="center">
-                <Title>
-                    My Addresses
-                </Title>
+            <Box className={ `${appClasses.pageBanner} ${appClasses.bannerUser}` }>
+                <div className={ appClasses.bannerDot1 } style={{ position: 'absolute', borderRadius: '50%', opacity: 0.08, pointerEvents: 'none' }}/>
+                <div className={ appClasses.bannerDot2 } style={{ position: 'absolute', borderRadius: '50%', opacity: 0.08, pointerEvents: 'none' }}/>
 
-                <CreateAddressActionIcon size="lg"/>
-            </Flex>
+                <Flex align="center" gap="sm" mb={8}>
+                    <IconMapPin size={28} style={{ opacity: 0.7 }}/>
+                    <Title fz={{ base: 24, md: 30 }} fw={800}>
+                        My Addresses
+                    </Title>
+                    <CreateAddressActionIcon size="lg"/>
+                </Flex>
+                <Text c="dimmed" size="sm" maw={500}>
+                    Manage your delivery and billing addresses for a seamless checkout experience.
+                </Text>
+            </Box>
 
             <AddressesList addresses={ addresses }/>
         </>

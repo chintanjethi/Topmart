@@ -37,6 +37,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (request.getServletPath().contains("/api/auth") ||
                 request.getServletPath().matches("/api/products/\\d+/images/primary") ||
                 request.getServletPath().matches("/api/orders/stripe-webhook") ||
+                request.getServletPath().equals("/api/orders/fulfill") ||
                 request.getServletPath().equals("/api/products/latest")
         ) {
             filterChain.doFilter(request, response);

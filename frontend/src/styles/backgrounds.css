@@ -1,0 +1,42 @@
+/* ===== App-wide background tints ===== */
+
+/* --- Light mode --- */
+[data-mantine-color-scheme="light"] {
+  --app-bg-main: #f5f6fa;
+  --app-bg-surface: #ffffff;
+  --app-bg-header: rgba(255, 255, 255, 0.88);
+  --app-bg-sidebar: #fafafc;
+  --app-bg-footer: #f5f6fa;
+  --app-border-subtle: #e9ecef;
+  --app-header-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* --- Dark mode --- */
+[data-mantine-color-scheme="dark"] {
+  --app-bg-main: #1a1b1e;
+  --app-bg-surface: #25262b;
+  --app-bg-header: rgba(26, 27, 30, 0.88);
+  --app-bg-sidebar: #1f2023;
+  --app-bg-footer: #1a1b1e;
+  --app-border-subtle: #373a40;
+  --app-header-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* AppShell main content area */
+.mantine-AppShell-main {
+  background: var(--app-bg-main) !important;
+}
+
+/* Header: frosted glass effect */
+.mantine-AppShell-header {
+  background: var(--app-bg-header) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--app-header-shadow);
+}
+
+/* Sidebar / Navbar */
+.mantine-AppShell-navbar {
+  background: var(--app-bg-sidebar) !important;
+  border-right-color: var(--app-border-subtle) !important;
+}

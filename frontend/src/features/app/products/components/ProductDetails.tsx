@@ -7,8 +7,8 @@ import { CartItemResponse, ProductResponse, WishlistItemResponse } from "@/types
 import { PRODUCT_CONDITION } from "@/utils/constants.ts";
 import { base64ToDataUri } from "@/utils/fileUtils.ts";
 import { Carousel } from "@mantine/carousel";
-import { Divider, Flex, Image, Paper, Text, Title, useMantineColorScheme } from "@mantine/core";
-import { IconList, IconTool } from "@tabler/icons-react";
+import { Badge, Divider, Flex, Image, Paper, Text, ThemeIcon, Title, useMantineColorScheme } from "@mantine/core";
+import { IconCategory, IconList, IconTool } from "@tabler/icons-react";
 
 export type ProductDetailsProps = {
     product: ProductResponse;
@@ -95,38 +95,47 @@ export function ProductDetails(
                     <Flex direction="column" gap={ 2 }>
                         <Flex justify="space-between" mb={ 2 }>
                             <Flex align="center" maw={ 350 }>
-                                <IconList size={ 20 }/>
-                                <Text span fw={ 700 } size="md" ms={ 9 } me={ 3 }>
+                                <ThemeIcon size={24} variant="transparent" color="dimmed">
+                                    <IconCategory size={ 18 }/>
+                                </ThemeIcon>
+                                <Text span fw={ 700 } size="md" ms={ 5 } me={ 3 }>
                                     Category:
                                 </Text>
-                                <Text span size="md">
-                                    { product.category.name }
-                                </Text>
+                                <Badge variant="light" size="md">{ product.category.name }</Badge>
                             </Flex>
 
                             <Flex align="center">
-                                <IconTool size={ 20 }/>
-                                <Text span fw={ 700 } size="md" ms={ 9 } me={ 3 }>
+                                <ThemeIcon size={24} variant="transparent" color="dimmed">
+                                    <IconTool size={ 18 }/>
+                                </ThemeIcon>
+                                <Text span fw={ 700 } size="md" ms={ 5 } me={ 3 }>
                                     Condition:
                                 </Text>
-                                <Text span size="md">
+                                <Badge variant="light" color="gray" size="md">
                                     { PRODUCT_CONDITION[product.condition] }
-                                </Text>
+                                </Badge>
                             </Flex>
                         </Flex>
                     </Flex>
 
                     <Flex justify={ { base: "center", md: "flex-start" } }>
-                        <Paper withBorder radius="md" mt="xl" p="md" w="60%">
+                        <Paper withBorder radius="lg" mt="xl" p="lg" w="65%"
+                            style={{ transition: 'box-shadow 0.3s ease' }}
+                        >
                             <Flex direction="column" gap="xs">
-                                <Flex align="center">
-                                    <Text span size="xl" fw={ 500 }>
-                                        £ { product.price.toFixed(2) }
+                                <Flex align="baseline" gap="xs">
+                                    <Text span size="xl" fw={ 700 } c="paleIndigo">
+                                        £{ product.price.toFixed(2) }
                                     </Text>
                                     { product.previousPrice && product.previousPrice > product.price &&
-                                        <Text span size="lg" fw={ 300 } ms="xs" td="line-through">
-                                            { product.previousPrice.toFixed(2) }
-                                        </Text>
+                                        <>
+                                            <Text span size="md" fw={ 300 } td="line-through" c="dimmed">
+                                                £{ product.previousPrice.toFixed(2) }
+                                            </Text>
+                                            <Badge color="red" variant="light" size="sm">
+                                                -{ Math.round(((product.previousPrice - product.price) / product.previousPrice) * 100) }%
+                                            </Badge>
+                                        </>
                                     }
                                 </Flex>
 

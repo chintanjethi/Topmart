@@ -5,14 +5,15 @@ import { paths } from "@/config/paths.ts";
 import { CartItemResponse, ProductResponse } from "@/types/api.ts";
 import { PRODUCT_CONDITION } from "@/utils/constants.ts";
 import { base64ToDataUri } from "@/utils/fileUtils.ts";
-import { Anchor, Card, Flex, Image, Text, useMantineColorScheme } from "@mantine/core";
+import appClasses from "@/styles/app.module.css";
+import { Anchor, Badge, Box, Card, Flex, Image, Text, useMantineColorScheme } from "@mantine/core";
 import { IconList, IconPackages, IconTool } from "@tabler/icons-react";
 import { Link, useNavigate } from "react-router";
 
 type ProductCardProps = {
     product: ProductResponse,
-    cartItem: CartItemResponse | undefined, // Used to determine if product is already in cart
-    inWishlist: boolean // Used to determine if product is already in wishlist
+    cartItem: CartItemResponse | undefined,
+    inWishlist: boolean
     cartEnabled: boolean
     wishlistEnabled: boolean
 };
@@ -23,74 +24,94 @@ export function ProductCard(
     const { colorScheme } = useMantineColorScheme();
     const navigate = useNavigate();
 
-    // Find the product image that should be displayed as front cover
     const displayedImage = product.images[0];
+    const hasDiscount = product.previousPrice && product.previousPrice > product.price;
 
     return (
-        <Card withBorder radius="md" w={ 300 }>
-            <Card.Section>
-                <Image
-                    src={ base64ToDataUri(displayedImage.image, displayedImage.type) } alt="Product Image"
-                    fit="contain" h={ 200 }
-                    bg={ colorScheme === "dark" ? "dark.4" : "gray.2" }
-                    style={ { cursor: "pointer" } }
-                    onClick={ () => navigate(paths.app.productDetails.getHref(product.id.toString())) }
-                />
+        <Card withBorder radius="md" w={ 300 } className={ appClasses.productCard } padding={0}>
+            <Card.Section className={ appClasses.productImageWrap }>
+                <Box pos="relative">
+                    <Image
+                        src={ base64ToDataUri(displayedImage.image, displayedImage.type) } alt="Product Image"
+                        fit="contain" h={ 200 } p="xs"
+                        bg={ colorScheme === "dark" ? "dark.4" : "gray.1" }
+                        style={ { cursor: "pointer" } }
+                        onClick={ () => navigate(paths.app.productDetails.getHref(product.id.toString())) }
+                    />
+                    { hasDiscount &&
+                        <Badge
+                            color="red" variant="filled" size="sm"
+                            pos="absolute" top={8} right={8}
+                            style={{ zIndex: 2 }}
+                        >
+                            { Math.round(((product.previousPrice - product.price) / product.previousPrice) * 100) }% OFF
+                        </Badge>
+                    }
+                    { product.availableQuantity === 0 &&
+                        <Badge
+                            color="dark" variant="filled" size="sm"
+                            pos="absolute" top={8} left={8}
+                            style={{ zIndex: 2 }}
+                        >
+                            Sold Out
+                        </Badge>
+                    }
+                </Box>
             </Card.Section>
 
-            <Card.Section inheritPadding withBorder mt="sm" h={90}>
+            <Box p="sm">
                 <Anchor
-                    size="xl" lineClamp={ 2 } fw={500}
+                    size="md" lineClamp={ 2 } fw={600}
                     c="var(--mantine-color-text)"
                     component={ Link } to={ paths.app.productDetails.getHref(product.id.toString()) }
+                    style={{ lineHeight: 1.4 }}
                 >
                     { product.name }
                 </Anchor>
 
-                <Text size="xs" c="dimmed" mb="xs">
+                <Text size="xs" c="dimmed" mt={2}>
                     Sold by { " " }
                     <CustomLink to={ paths.app.productsByUser.getHref(product.seller.id.toString()) }>
                         { product.seller.name }
                     </CustomLink>
                 </Text>
-            </Card.Section>
 
-            <Card.Section inheritPadding withBorder mt="xs">
-                <Flex direction="column" gap={ 2 }>
-                    <Flex justify="space-between" mb={ 2 }>
-                        <Flex align="center">
-                            <IconList size={ 16 }/>
-                            <Text span size="sm" ms={ 5 }>
-                                { product.category.name }
-                            </Text>
-                        </Flex>
-
-                        <Flex align="center">
-                            <IconTool size={ 16 }/>
-                            <Text span size="sm" ms={ 5 }>
-                                { PRODUCT_CONDITION[product.condition] }
-                            </Text>
-                        </Flex>
-                    </Flex>
-
-                    <Flex align="center" c={ product.availableQuantity <= 3 ? "red.6" : "" } mb="sm">
-                        <IconPackages size={ 16 }/>
-                        <Text span size="sm" ms={ 5 }>
-                            Available Quantity: { product.availableQuantity }
-                        </Text>
-                    </Flex>
+                <Flex mt="xs" gap={6} wrap="wrap">
+                    <Badge variant="light" size="xs" color="gray" leftSection={<IconList size={10}/>}>
+                        { product.category.name }
+                    </Badge>
+                    <Badge variant="light" size="xs" color="gray" leftSection={<IconTool size={10}/>}>
+                        { PRODUCT_CONDITION[product.condition] }
+                    </Badge>
                 </Flex>
-            </Card.Section>
 
-            <Card.Section inheritPadding mt="xs">
-                <Flex justify="space-between" align="center">
+                <Flex align="center" mt={6} mb={4}>
+                    <IconPackages size={14} style={{ opacity: 0.5 }}/>
+                    <Text
+                        span size="xs" ms={4}
+                        c={ product.availableQuantity <= 3 ? "red.6" : "dimmed" }
+                        fw={ product.availableQuantity <= 3 ? 600 : 400 }
+                    >
+                        { product.availableQuantity <= 0
+                            ? "Out of stock"
+                            : product.availableQuantity <= 3
+                                ? `Only ${product.availableQuantity} left!`
+                                : `${product.availableQuantity} available`
+                        }
+                    </Text>
+                </Flex>
+
+                <Flex
+                    justify="space-between" align="center" pt="xs" mt="xs"
+                    style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
+                >
                     <div>
-                        <Text span size="xl" fw={ 500 }>
-                            £ { product.price.toFixed(2) }
+                        <Text span size="xl" fw={ 700 }>
+                            £{ product.price.toFixed(2) }
                         </Text>
-                        { product.previousPrice && product.previousPrice > product.price &&
-                            <Text span size="md" fw={ 300 } ms="xs" td="line-through">
-                                { product.previousPrice.toFixed(2) }
+                        { hasDiscount &&
+                            <Text span size="sm" fw={ 400 } ms="xs" td="line-through" c="dimmed">
+                                £{ product.previousPrice.toFixed(2) }
                             </Text>
                         }
                     </div>
@@ -102,22 +123,22 @@ export function ProductCard(
                     />
                 </Flex>
 
-                <Flex justify="space-between" align="center" mt="sm" mb="sm">
+                <Flex justify="space-between" align="center" mt="sm">
                     { product.availableQuantity > 0 ? (
                         <CartButtonGroup
                             cartItem={ cartItem } product={ product } cartEnabled={ cartEnabled }
                         />
                     ) : (
-                        <Text c="red.6" size="sm">
-                            Out of Stock
+                        <Text c="red.6" size="sm" fw={500}>
+                            Unavailable
                         </Text>
                     ) }
 
                     <Text c="dimmed" size="xs">
-                        Product #{ product.id }
+                        #{ product.id }
                     </Text>
                 </Flex>
-            </Card.Section>
+            </Box>
         </Card>
     );
 }

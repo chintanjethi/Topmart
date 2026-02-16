@@ -45,6 +45,7 @@ public class SecurityConfiguration {
                                 "/api/auth/**",
                                 "/api/products/*/images/primary",
                                 "/api/orders/stripe-webhook",
+                                "/api/orders/fulfill", // for testing purposes, should be protected in production
                                 "/api/products/latest"
                         ).permitAll()
                         .anyRequest().authenticated()

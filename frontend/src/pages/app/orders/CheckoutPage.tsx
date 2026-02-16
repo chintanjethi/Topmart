@@ -6,8 +6,9 @@ import { CartItemsList } from "@/features/app/cart/components/CartItemsList.tsx"
 import { AddressSelectCard } from "@/features/app/orders/components/AddressSelectCard.tsx";
 import { CheckoutTotalCard } from "@/features/app/orders/components/CheckoutTotalCard.tsx";
 import { useAuth } from "@/hooks/useAuth.ts";
-import { Button, Flex, Loader, Text, Title } from "@mantine/core";
-import { IconArrowBack } from "@tabler/icons-react";
+import appClasses from "@/styles/app.module.css";
+import { Badge, Box, Button, Flex, Loader, Text, Title } from "@mantine/core";
+import { IconArrowBack, IconLock, IconShieldCheck } from "@tabler/icons-react";
 import { useState } from "react";
 import { Link, Navigate } from "react-router";
 
@@ -32,27 +33,33 @@ export function CheckoutPage() {
     if (getAddressesQuery.isError) {
         console.log("Error fetching addresses", getAddressesQuery.error);
         return (
-            <Text c="red.5">
-                There was an error when fetching your addresses. Please refresh and try again.
-            </Text>
+            <Box className={ appClasses.emptyState }>
+                <Text c="red.5" fw={500}>
+                    There was an error when fetching your addresses. Please refresh and try again.
+                </Text>
+            </Box>
         );
     }
 
     if (getCartQuery.isError) {
         console.log("Error fetching cart", getCartQuery.error);
         return (
-            <Text c="red.5">
-                There was an error when fetching your cart. Please refresh and try again.
-            </Text>
+            <Box className={ appClasses.emptyState }>
+                <Text c="red.5" fw={500}>
+                    There was an error when fetching your cart. Please refresh and try again.
+                </Text>
+            </Box>
         );
     }
 
     if (getCartTotalQuery.isError) {
         console.log("Error fetching cart total", getCartTotalQuery.error);
         return (
-            <Text c="red.5">
-                There was an error when calculating your cart total. Please refresh and try again.
-            </Text>
+            <Box className={ appClasses.emptyState }>
+                <Text c="red.5" fw={500}>
+                    There was an error when calculating your cart total. Please refresh and try again.
+                </Text>
+            </Box>
         );
     }
 
@@ -77,9 +84,23 @@ export function CheckoutPage() {
         <>
             <title>{ `Checkout | TopMart` }</title>
 
-            <Title ta="center" my="lg">
-                Checkout
-            </Title>
+            <Box className={ `${appClasses.pageBanner} ${appClasses.bannerCheckout}` }>
+                <div className={ appClasses.bannerDot1 } style={{ position: 'absolute', borderRadius: '50%', opacity: 0.08, pointerEvents: 'none' }}/>
+                <div className={ appClasses.bannerDot2 } style={{ position: 'absolute', borderRadius: '50%', opacity: 0.08, pointerEvents: 'none' }}/>
+
+                <Flex align="center" gap="sm" mb={8}>
+                    <IconShieldCheck size={28} style={{ opacity: 0.7 }}/>
+                    <Title fz={{ base: 24, md: 30 }} fw={800}>
+                        Secure Checkout
+                    </Title>
+                    <Badge variant="light" color="green" size="lg" leftSection={<IconLock size={14}/>}>
+                        SSL Encrypted
+                    </Badge>
+                </Flex>
+                <Text c="dimmed" size="sm" maw={500}>
+                    Select your delivery and billing addresses, review your order, and complete the purchase.
+                </Text>
+            </Box>
 
             <Flex
                 direction={ { base: "column", md: "row" } }

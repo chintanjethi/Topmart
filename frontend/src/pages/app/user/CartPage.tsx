@@ -3,7 +3,9 @@ import { useGetCartTotal } from "@/api/cart/getCartTotal.ts";
 import { CartItemsList } from "@/features/app/cart/components/CartItemsList.tsx";
 import { CartTotalCard } from "@/features/app/cart/components/CartTotalCard.tsx";
 import { useAuth } from "@/hooks/useAuth.ts";
-import { Flex, Loader, Text } from "@mantine/core";
+import appClasses from "@/styles/app.module.css";
+import { Badge, Box, Flex, Loader, Text, Title } from "@mantine/core";
+import { IconShoppingCart } from "@tabler/icons-react";
 
 export function CartPage() {
     const { user } = useAuth();
@@ -22,18 +24,22 @@ export function CartPage() {
     if (getCartQuery.isError) {
         console.log("Error fetching cart", getCartQuery.error);
         return (
-            <Text c="red.5">
-                There was an error when fetching your cart. Please refresh and try again.
-            </Text>
+            <Box className={ appClasses.emptyState }>
+                <Text c="red.5" fw={500}>
+                    There was an error when fetching your cart. Please refresh and try again.
+                </Text>
+            </Box>
         );
     }
 
     if (getCartTotalQuery.isError) {
         console.log("Error fetching cart total", getCartTotalQuery.error);
         return (
-            <Text c="red.5">
-                There was an error when calculating your cart total. Please refresh and try again.
-            </Text>
+            <Box className={ appClasses.emptyState }>
+                <Text c="red.5" fw={500}>
+                    There was an error when calculating your cart total. Please refresh and try again.
+                </Text>
+            </Box>
         );
     }
 
@@ -50,11 +56,31 @@ export function CartPage() {
         <>
             <title>{ `Cart | TopMart` }</title>
 
+            <Box className={ `${appClasses.pageBanner} ${appClasses.bannerCart}` }>
+                <div className={ appClasses.bannerDot1 } style={{ position: 'absolute', borderRadius: '50%', opacity: 0.08, pointerEvents: 'none' }}/>
+                <div className={ appClasses.bannerDot2 } style={{ position: 'absolute', borderRadius: '50%', opacity: 0.08, pointerEvents: 'none' }}/>
+
+                <Flex align="center" gap="sm" mb={8}>
+                    <IconShoppingCart size={28} style={{ opacity: 0.7 }}/>
+                    <Title fz={{ base: 24, md: 30 }} fw={800}>
+                        Shopping Cart
+                    </Title>
+                    { !cartEmpty &&
+                        <Badge variant="light" color="teal" size="lg">
+                            { totalItems } { totalItems === 1 ? "item" : "items" }
+                        </Badge>
+                    }
+                </Flex>
+                <Text c="dimmed" size="sm" maw={500}>
+                    Review your items, adjust quantities, and proceed to checkout when you're ready.
+                </Text>
+            </Box>
+
             <Flex
                 direction={ { base: "column", md: "row" } }
                 justify={ { base: "flex-start", md: "center" } }
                 align={ { base: "center", md: "flex-start" } }
-                mt="lg" gap="md"
+                mt="sm" gap="md"
             >
                 <CartItemsList
                     cartItems={ cartItems } cartTotal={ cartTotal }
